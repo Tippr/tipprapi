@@ -1,0 +1,5 @@
+tipprapi.egg-info/PKG-INFO
+tipprapi.egg-info/SOURCES.txt
+tipprapi.egg-info/dependency_links.txt
+tipprapi.egg-info/requires.txt
+tipprapi.egg-info/top_level.txt
