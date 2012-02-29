@@ -51,11 +51,8 @@ class TipprAPIClient(BaseTipprAPIClient):
     def __init__(self):
         super(TipprAPIClient, self).__init__(SETTINGS['api_url'], SETTINGS['api_key'])
 
-    def find_promotion(self, pid):
-        params = {}
-        result = self._make_api_request('get', 'promotion/%(id)s/' % dict(id=pid), params)
-        return result
-    
+    def find_promotion(self, id):
+        return self._make_api_request('get', 'promotion/%(id)s/' % dict(id=id), {})
 
     def find_promotions(self, query={}):
         return ResultIterator('promotions', lambda params: self._make_api_request('get', 'promotion/', params), query)
