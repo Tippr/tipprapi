@@ -1,5 +1,7 @@
 import urllib
+import urllib2
 import simplejson 
+import socket
 
 import logging
 
@@ -25,25 +27,33 @@ class BaseTipprAPIClient(object):
         self.url = url
         self.apikey = apikey
 
-    def _make_api_request(self, type, resource, params):
-        if type == 'get':
-            data = self._make_get_request(resource, params)
-        else:
-            data = self._make_post_request(resource, params)
-        
-        data = simplejson.loads(data)
-        return data
-
     def _make_get_request(self, resource, params):
         url = self.__base_url(resource) + '&' + urllib.urlencode(params)
-        r = urllib.urlopen(url)
-        return r.read()
+        return self._try_connect(lambda: urllib2.urlopen(url))
 
     def _make_post_request(self, resource, params):
         data = urllib.urlencode(params)
-        r = urllib.urlopen(self.__base_url(resource), data=data)
-        return r.read()
+        return self._try_connect(lambda: urllib2.urlopen(self.__base_url(resource), data=data))
+
+    def _make_api_request(self, type, resource, params):
+        if type == 'get':
+            r = self._make_get_request(resource, params)
+        else:
+            r = self._make_post_request(resource, params)
+        data = simplejson.loads(r.read())
+        return data
     
+    def _try_connect(self, connectf, total_attemps = 3, current_attemp=1):
+        try:
+            r = connectf()
+        except urllib2.URLError, e:
+            if current_attemp < total_attemps:
+                if isinstance(e.reason, socket.timeout):
+                    r = self._try_connect(connectf, total_attemps, current_attemp + 1)
+            else:
+                raise e
+        return r
+
     def __base_url(self, resource):
         return self.url + resource + '?' + urllib.urlencode(dict(apikey=self.apikey))
 
